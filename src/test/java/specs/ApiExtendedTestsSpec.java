@@ -15,29 +15,29 @@ public class ApiExtendedTestsSpec {
             .log().uri()
             .log().body()
             .log().headers()
-            .contentType(JSON)
-            .basePath("api/login");
-
-    public static RequestSpecification loginByUserIdSpec = with()
-            .filter(withCustomTemplates())
-            .log().uri()
-            .log().body()
-            .log().headers()
             .contentType(JSON);
 
 
 
-    public static ResponseSpecification loginResponseSpec = new ResponseSpecBuilder()
+
+    public static ResponseSpecification responseSpecWithStatus200 = new ResponseSpecBuilder()
             .log(STATUS)
             .log(BODY)
             .expectStatusCode(200)
             .build();
 
-    public static ResponseSpecification errorResponseSpec = new ResponseSpecBuilder()
+    public static ResponseSpecification responseSpecWithStatus400 = new ResponseSpecBuilder()
             .log(STATUS)
             .log(BODY)
             .expectStatusCode(400)
             .build();
+
+    public static ResponseSpecification responseSpecWithStatus201 = new ResponseSpecBuilder()
+            .log(STATUS)
+            .log(BODY)
+            .expectStatusCode(201)
+            .build();
+
 
 
 }

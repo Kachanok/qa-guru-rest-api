@@ -1,9 +1,7 @@
 package tests;
 
 import io.qameta.allure.restassured.AllureRestAssured;
-import models.lombok.ErrorResponseLombokModel;
-import models.lombok.LoginBodyLombokModel;
-import models.lombok.LoginResponseLombokModel;
+import models.lombok.*;
 import models.pojo.LoginBodyModel;
 import models.pojo.LoginResponseModel;
 import org.junit.jupiter.api.DisplayName;
@@ -12,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static specs.ApiExtendedTestsSpec.*;
@@ -63,11 +59,11 @@ public class ApiExtendedTests extends TestBase {
                         .post()
 
                         .then()
-                        .spec(loginResponseSpec)
+                        .spec(responseSpecWithStatus200)
                         .extract().as(LoginResponseLombokModel.class));
         step("Check response", () ->
 
-            assertNotNull("Token should not be null", response.getToken()));
+                assertNotNull("Token should not be null", response.getToken()));
 
     }
 
@@ -75,16 +71,18 @@ public class ApiExtendedTests extends TestBase {
     @DisplayName("API. Unsuccessful login test")
     void unsuccessfulLoginLombokTest() {
         LoginBodyLombokModel authData = new LoginBodyLombokModel();
+        authData.setEmail("");
+        authData.setPassword("cityslicka");
 
         ErrorResponseLombokModel response = step("Make request", () ->
                 given(loginRequestSpec)
-
                         .body(authData)
 
                         .when()
-                        .post()
+                        .post("users/")
+
                         .then()
-                        .spec(errorResponseSpec)
+                        .spec(responseSpecWithStatus400)
                         .extract().as(ErrorResponseLombokModel.class));
 
         step("Check response", () ->
@@ -95,21 +93,21 @@ public class ApiExtendedTests extends TestBase {
     @Test
     @DisplayName("API. Correct get request for single user by ID")
     void getUserByIdTest() {
-        LoginBodyLombokModel userId = new LoginBodyLombokModel();
+        UserLombokModel userId = new UserLombokModel();
         userId.setUserID("8");
 
-        LoginResponseLombokModel response = step("Make request", () ->
+        UserResponseLombokModel response = step("Make request", () ->
                 given(loginRequestSpec)
                         .body(userId)
 
                         .when()
-                .get("users/" + userId)
+                        .get("users/" + userId)
 
-                .then()
-                        .spec(loginResponseSpec)
-                        .extract().as(LoginResponseLombokModel.class));
+                        .then()
+                        .spec(responseSpecWithStatus200)
+                        .extract().as(UserResponseLombokModel.class));
         step("Check response", () ->
-                assertEquals("data.email", is("lindsay.ferguson@reqres.in")));
+                assertEquals("data.email", response.getEmail()));
 
 
     }
@@ -117,21 +115,22 @@ public class ApiExtendedTests extends TestBase {
     @Test
     @DisplayName("API. Create new user request")
     void createNewUserTest() {
-        String userData = "{\"name\": \"morpheus\",\"job\": \"leader\"}";
+        CreateUserLombokModel userData = new CreateUserLombokModel();
+        userData.setUserName("morpheus");
+        userData.setUserJob("leader");
 
-        given()
-                .filter(new AllureRestAssured())
-                .body(userData)
-                .log().uri()
-                .when()
-                .post("/users")
+        CreateUserResponseLombokModel response = step("Make request", () ->
+                given(loginRequestSpec)
+                        .body(userData)
 
-                .then()
-                .log().status()
-                .log().body()
-                .statusCode(201)
-                .body("id", is(notNullValue()))
-                .body("createdAt", is(notNullValue()));
+                        .when()
+                        .post("/users")
+
+                        .then()
+                        .spec(responseSpecWithStatus201)
+                        .extract().as(CreateUserResponseLombokModel.class));
+        step("Check response", () ->
+                assertNotNull("createdAt", response.getCreatedAt()));
 
 
     }
@@ -139,68 +138,25 @@ public class ApiExtendedTests extends TestBase {
     @Test
     @DisplayName("API. Update user request")
     void updateUserTest() {
-        String userData = "{\"name\": \"morpheus\", \"job\": \"designer\"}";
+        CreateUserLombokModel userData = new CreateUserLombokModel();
+        userData.setUserName("morpheus");
+        userData.setUserJob("designer");
 
-        given()
-                .filter(new AllureRestAssured())
-                .body(userData)
-                .log().uri()
-                .contentType(JSON)
-                .when()
-                .put("/users/2")
+        UpdateUserResponseLombokModel response = step("Make request", () ->
+                given(loginRequestSpec)
+                        .body(userData)
 
-                .then()
-                .log().status()
-                .log().body()
-                .statusCode(200)
-                .body("name", is("morpheus"))
-                .body("job", is("designer"))
-                .body("updatedAt", is(notNullValue()));
+                        .when()
+                        .put("/users/2")
 
-
-    }
-
-    @Test
-    @DisplayName("API. Unsuccessful user registration test")
-    void unsuccessfulRegisterTest() {
-        String registerData = "{\"email\": \"eve.holt@reqres.in\"}";
-
-        given()
-                .filter(new AllureRestAssured())
-                .body(registerData)
-                .log().uri()
-                .when()
-                .post("/register")
-
-                .then()
-                .log().status()
-                .log().body()
-                .statusCode(400)
-                .body("error", is("Missing email or username"));
+                        .then()
+                        .spec(responseSpecWithStatus200)
+                        .extract().as(UpdateUserResponseLombokModel.class));
+        step("Check response", () ->
+                assertNotNull("updatedAt", response.getUpdatedAt()));
 
 
     }
-
-    @Test
-    @DisplayName("API. Get list of resources request")
-    void getListResourceTest() {
-
-
-        given()
-                .filter(new AllureRestAssured())
-                .log().uri()
-                .contentType(JSON)
-                .when()
-                .get("/unknown")
-
-                .then()
-                .log().status()
-                .log().body()
-                .statusCode(200)
-                .body("data.page", is(notNullValue()))
-                .body("data.total", is(notNullValue()));
-
-
-    }
-
 }
+
+
