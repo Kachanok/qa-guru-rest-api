@@ -1,5 +1,8 @@
+package tests;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tests.TestBase;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
