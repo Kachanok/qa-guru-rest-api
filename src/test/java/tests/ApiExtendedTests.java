@@ -1,6 +1,5 @@
 package tests;
 
-import io.qameta.allure.restassured.AllureRestAssured;
 import models.lombok.*;
 import models.pojo.LoginBodyModel;
 import models.pojo.LoginResponseModel;
@@ -9,7 +8,6 @@ import org.junit.jupiter.api.Test;
 
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
-import static io.restassured.http.ContentType.JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static specs.ApiExtendedTestsSpec.*;
@@ -26,20 +24,20 @@ public class ApiExtendedTests extends TestBase {
         authData.setEmail("eve.holt@reqres.in");
         authData.setPassword("cityslicka");
 
-        LoginResponseModel response = given()
-                .filter(new AllureRestAssured())
+        LoginResponseModel response = step("Make request", () ->
+                given(loginRequestSpec)
                 .body(authData)
-                .contentType(JSON)
-                .log().uri()
+
                 .when()
-                .post("api/login")
+                .post("/login")
 
                 .then()
-                .log().body()
-                .statusCode(200)
-                .extract().as(LoginResponseModel.class);
+                        .spec(responseSpecWithStatus200)
+                .extract().as(LoginResponseModel.class));
 
-        assertNotNull(response.getToken(), "Token should not be null");
+        step("Check response", () ->
+
+                assertNotNull("Token should not be null", response.getToken()));
 
 
     }
@@ -56,7 +54,7 @@ public class ApiExtendedTests extends TestBase {
                         .body(authData)
 
                         .when()
-                        .post()
+                        .post("/login")
 
                         .then()
                         .spec(responseSpecWithStatus200)
@@ -94,7 +92,7 @@ public class ApiExtendedTests extends TestBase {
     @DisplayName("API. Correct get request for single user by ID")
     void getUserByIdTest() {
         UserLombokModel userId = new UserLombokModel();
-        userId.setUserID("8");
+        userId.setUserID("5");
 
         UserResponseLombokModel response = step("Make request", () ->
                 given(loginRequestSpec)
